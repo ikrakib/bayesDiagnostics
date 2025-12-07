@@ -3,7 +3,7 @@ Type: Package
 Title: Comprehensive Bayesian Model Diagnostics and Comparison
 Version: 0.1.0
 Authors@R: 
-    person("Ikramul", "Rakib", , "ikrakib1010@gmail.com", role = c("aut", "cre"))
+    person("Ibrahim Kholil", "Rakib", , "ikrakib1010@gmail.com", role = c("aut", "cre"))
 Description: Provides comprehensive tools for Bayesian model diagnostics 
     and comparison. Includes prior sensitivity analysis, posterior predictive 
     checks, advanced model comparison, convergence diagnostics, and prior 
