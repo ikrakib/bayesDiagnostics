@@ -1,0 +1,19 @@
+---
+title: "introduction-to-bayesDiagnostics"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{introduction-to-bayesDiagnostics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(bayesDiagnostics)
+```
