@@ -9,3 +9,4 @@ calculate_kl_divergence(x, y)
 \description{
 KL Divergence Calculation
 }
+\keyword{internal}

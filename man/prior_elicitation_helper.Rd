@@ -29,6 +29,8 @@ Elements: parameter_name, plausible_range, most_likely_value, confidence}
 \item{visualize}{Logical. Show comparison plots (default: TRUE)}
 
 \item{...}{Additional arguments}
+
+\item{x}{Object of class \code{prior_elicitation} (for print method).}
 }
 \value{
 Object of class \code{prior_elicitation} containing:

@@ -9,3 +9,4 @@ create_ppc_plots(result, alpha = 0.7, ...)
 \description{
 Create PPC Plots
 }
+\keyword{internal}

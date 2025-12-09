@@ -38,6 +38,8 @@ Each element should be a prior() object or named list of priors.}
 \item{plot}{Logical. Generate visualizations (default: TRUE)}
 
 \item{...}{Additional arguments}
+
+\item{x}{Object of class \code{prior_robustness} (for print method).}
 }
 \value{
 Object of class \code{prior_robustness} containing:

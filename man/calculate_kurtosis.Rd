@@ -9,3 +9,4 @@ calculate_kurtosis(x)
 \description{
 Calculate Kurtosis
 }
+\keyword{internal}

@@ -11,6 +11,7 @@
 #'   Options: "mean", "sd", "median", "min", "max", "range", "skewness", "kurtosis"
 #' @param plot Logical. Whether to generate visualization (default: TRUE)
 #' @param alpha Numeric. Transparency level for plots (default: 0.7)
+#' @param x Object of class `posterior_predictive_check` (for print/plot methods).
 #' @param ... Additional arguments passed to plotting functions
 #'
 #' @return Object of class `posterior_predictive_check` containing:
@@ -119,11 +120,11 @@ print.posterior_predictive_check <- function(x, ...) {
     pval <- x$p_values[i]
 
     if (pval < 0.05 || pval > 0.95) {
-      cat("  ⚠️  ", stat_name, "(p =", round(pval, 3), ") - Potential concern\n")
+      cat("  [WARN] ", stat_name, "(p =", round(pval, 3), ") - Potential concern\n")
     } else if (pval < 0.1 || pval > 0.9) {
-      cat("  ⚡ ", stat_name, "(p =", round(pval, 3), ") - Minor concern\n")
+      cat("  [NOTE] ", stat_name, "(p =", round(pval, 3), ") - Minor concern\n")
     } else {
-      cat("  ✓  ", stat_name, "(p =", round(pval, 3), ") - Good fit\n")
+      cat("  [OK] ", stat_name, "(p =", round(pval, 3), ") - Good fit\n")
     }
   }
 
@@ -145,6 +146,7 @@ plot.posterior_predictive_check <- function(x, ...) {
 # ============ HELPER FUNCTIONS ============
 
 #' Generate Posterior Predictive Samples
+#' @keywords internal
 generate_posterior_predictive_samples <- function(model, n_samples) {
   if (!inherits(model, "brmsfit")) {
     stop("Model must be of class 'brmsfit'")
@@ -168,6 +170,7 @@ generate_posterior_predictive_samples <- function(model, n_samples) {
 }
 
 #' Calculate Test Statistics
+#' @keywords internal
 calculate_test_statistics <- function(data, test_statistics) {
   stats_list <- list()
 
@@ -195,6 +198,7 @@ calculate_test_statistics <- function(data, test_statistics) {
 }
 
 #' Calculate Skewness
+#' @keywords internal
 calculate_skewness <- function(x) {
   x <- x[!is.na(x)]
   n <- length(x)
@@ -206,6 +210,7 @@ calculate_skewness <- function(x) {
 }
 
 #' Calculate Kurtosis
+#' @keywords internal
 calculate_kurtosis <- function(x) {
   x <- x[!is.na(x)]
   n <- length(x)
@@ -217,6 +222,7 @@ calculate_kurtosis <- function(x) {
 }
 
 #' Calculate Bayesian P-values
+#' @keywords internal
 calculate_bayesian_pvalues <- function(observed_stats, replicated_stats) {
   p_values <- numeric(length(observed_stats))
 
@@ -245,6 +251,7 @@ calculate_bayesian_pvalues <- function(observed_stats, replicated_stats) {
 }
 
 #' Create PPC Plots
+#' @keywords internal
 create_ppc_plots <- function(result, alpha = 0.7, ...) {
   tryCatch({
     plot_data <- data.frame(

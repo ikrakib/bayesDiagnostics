@@ -9,3 +9,4 @@ calculate_bayesian_pvalues(observed_stats, replicated_stats)
 \description{
 Calculate Bayesian P-values
 }
+\keyword{internal}

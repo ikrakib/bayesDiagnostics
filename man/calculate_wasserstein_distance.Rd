@@ -9,3 +9,4 @@ calculate_wasserstein_distance(x, y)
 \description{
 Wasserstein Distance Calculation
 }
+\keyword{internal}

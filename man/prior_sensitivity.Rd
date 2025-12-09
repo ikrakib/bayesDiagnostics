@@ -34,6 +34,8 @@ prior_sensitivity(
 \item{n_draws}{Number of posterior draws to use (default: 2000)}
 
 \item{...}{Additional arguments passed to plotting functions}
+
+\item{x}{Object of class \code{prior_sensitivity} (for print/plot methods).}
 }
 \value{
 An object of class \code{prior_sensitivity} containing:

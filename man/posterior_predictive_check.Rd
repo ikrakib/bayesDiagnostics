@@ -35,6 +35,8 @@ Options: "mean", "sd", "median", "min", "max", "range", "skewness", "kurtosis"}
 \item{alpha}{Numeric. Transparency level for plots (default: 0.7)}
 
 \item{...}{Additional arguments passed to plotting functions}
+
+\item{x}{Object of class \code{posterior_predictive_check} (for print/plot methods).}
 }
 \value{
 Object of class \code{posterior_predictive_check} containing:

@@ -9,3 +9,4 @@ calculate_skewness(x)
 \description{
 Calculate Skewness
 }
+\keyword{internal}

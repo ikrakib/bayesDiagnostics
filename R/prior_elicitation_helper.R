@@ -10,6 +10,7 @@
 #' @param method Character: "quantile", "histogram", or "interactive"
 #' @param data_sample Numeric vector of observed data (optional, for context)
 #' @param visualize Logical. Show comparison plots (default: TRUE)
+#' @param x Object of class `prior_elicitation` (for print method).
 #' @param ... Additional arguments
 #'
 #' @return Object of class `prior_elicitation` containing:
@@ -137,6 +138,8 @@ print.prior_elicitation <- function(x, ...) {
 
 # Helper functions for prior_elicitation
 
+#' Elicit continuous prior
+#' @keywords internal
 elicit_continuous_prior <- function(plausible_range, most_likely, confidence) {
   # Determine distribution family
   lower <- min(plausible_range)
@@ -167,6 +170,8 @@ elicit_continuous_prior <- function(plausible_range, most_likely, confidence) {
   }
 }
 
+#' Elicit discrete prior
+#' @keywords internal
 elicit_discrete_prior <- function(plausible_range, most_likely) {
   # For count data, use Poisson or negative binomial priors
   return(brms::prior(
@@ -175,6 +180,8 @@ elicit_discrete_prior <- function(plausible_range, most_likely) {
   ))
 }
 
+#' Elicit proportion prior
+#' @keywords internal
 elicit_proportion_prior <- function(most_likely, confidence) {
   # Beta distribution for proportions
   # Use method of moments
@@ -187,6 +194,8 @@ elicit_proportion_prior <- function(most_likely, confidence) {
   ))
 }
 
+#' Generate prior alternatives
+#' @keywords internal
 generate_prior_alternatives <- function(recommended, param_type, confidence) {
   # Generate more/less informative alternatives
   alternatives <- list(
@@ -198,6 +207,8 @@ generate_prior_alternatives <- function(recommended, param_type, confidence) {
   return(alternatives)
 }
 
+#' Generate weaker version
+#' @keywords internal
 generate_weaker_version <- function(prior_obj, param_type) {
   # Make prior more diffuse
   if (param_type == "continuous") {
@@ -207,6 +218,8 @@ generate_weaker_version <- function(prior_obj, param_type) {
   }
 }
 
+#' Generate stronger version
+#' @keywords internal
 generate_stronger_version <- function(prior_obj, param_type) {
   # Make prior more concentrated
   if (param_type == "continuous") {
@@ -216,6 +229,8 @@ generate_stronger_version <- function(prior_obj, param_type) {
   }
 }
 
+#' Create sensitivity guidance
+#' @keywords internal
 create_sensitivity_guidance <- function(recommended, alternatives) {
   guidance <- paste0(
     "Recommended approach:\n",
@@ -229,6 +244,8 @@ create_sensitivity_guidance <- function(recommended, alternatives) {
   return(guidance)
 }
 
+#' Create elicitation diagnostics
+#' @keywords internal
 create_elicitation_diagnostics <- function(result, data_sample) {
   # Create plots comparing prior to data
   prior_draws <- rnorm(1000, mean = result$parameter_summary$most_likely,

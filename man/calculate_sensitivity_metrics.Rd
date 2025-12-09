@@ -9,3 +9,4 @@ calculate_sensitivity_metrics(original, refitted_list, parameters, metric)
 \description{
 Calculate Sensitivity Metrics
 }
+\keyword{internal}

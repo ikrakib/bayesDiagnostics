@@ -9,3 +9,4 @@ generate_posterior_predictive_samples(model, n_samples)
 \description{
 Generate Posterior Predictive Samples
 }
+\keyword{internal}

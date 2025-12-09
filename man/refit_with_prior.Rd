@@ -9,3 +9,4 @@ refit_with_prior(model, new_prior, n_draws)
 \description{
 Refit Model with Alternative Prior
 }
+\keyword{internal}

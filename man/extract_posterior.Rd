@@ -9,3 +9,4 @@ extract_posterior(model, parameters, n_draws)
 \description{
 Extract Posterior Draws
 }
+\keyword{internal}

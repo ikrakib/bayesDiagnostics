@@ -9,6 +9,7 @@
 #' @param comparison_metric One of "KL", "Wasserstein", or "overlap"
 #' @param plot Logical. Whether to generate plots (default: TRUE)
 #' @param n_draws Number of posterior draws to use (default: 2000)
+#' @param x Object of class `prior_sensitivity` (for print/plot methods).
 #' @param ... Additional arguments passed to plotting functions
 #'
 #' @return An object of class \code{prior_sensitivity} containing:
@@ -130,10 +131,11 @@ plot.prior_sensitivity <- function(x, ...) {
 # ============ HELPER FUNCTIONS ============
 
 #' Extract Posterior Draws
+#' @keywords internal
 extract_posterior <- function(model, parameters, n_draws) {
   if (inherits(model, "brmsfit")) {
     posterior::as_draws_df(model) |>
-      dplyr::select(all_of(parameters)) |>
+      dplyr::select(dplyr::all_of(parameters)) |>
       head(n_draws)
   } else {
     stop("Model class not supported")
@@ -141,6 +143,7 @@ extract_posterior <- function(model, parameters, n_draws) {
 }
 
 #' Refit Model with Alternative Prior
+#' @keywords internal
 refit_with_prior <- function(model, new_prior, n_draws) {
   if (inherits(model, "brmsfit")) {
     refitted <- update(
@@ -158,6 +161,7 @@ refit_with_prior <- function(model, new_prior, n_draws) {
 }
 
 #' Calculate Sensitivity Metrics
+#' @keywords internal
 calculate_sensitivity_metrics <- function(original,
                                           refitted_list,
                                           parameters,
@@ -195,6 +199,7 @@ calculate_sensitivity_metrics <- function(original,
 }
 
 #' KL Divergence Calculation
+#' @keywords internal
 calculate_kl_divergence <- function(x, y) {
   # Estimate densities
   dx <- density(x, from = min(c(x, y)), to = max(c(x, y)))
@@ -212,6 +217,7 @@ calculate_kl_divergence <- function(x, y) {
 }
 
 #' Wasserstein Distance Calculation
+#' @keywords internal
 calculate_wasserstein_distance <- function(x, y) {
   # Approximate via quantiles
   quantiles <- seq(0, 1, by = 0.01)
@@ -222,6 +228,7 @@ calculate_wasserstein_distance <- function(x, y) {
 }
 
 #' Overlap Coefficient Calculation
+#' @keywords internal
 calculate_overlap_coefficient <- function(x, y) {
   # Overlap between two distributions
   dx <- density(x)
@@ -237,6 +244,7 @@ calculate_overlap_coefficient <- function(x, y) {
 }
 
 #' Create Sensitivity Plots
+#' @keywords internal
 create_sensitivity_plots <- function(result, ...) {
   # Create density plot comparing posteriors
 

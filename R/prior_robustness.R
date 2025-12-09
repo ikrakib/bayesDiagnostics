@@ -12,6 +12,7 @@
 #' @param comparison_metric One of "KL", "Wasserstein", "correlation", "coverage"
 #' @param credible_level Numeric. Credible interval level (default: 0.95)
 #' @param plot Logical. Generate visualizations (default: TRUE)
+#' @param x Object of class `prior_robustness` (for print method).
 #' @param ... Additional arguments
 #'
 #' @return Object of class `prior_robustness` containing:
@@ -135,7 +136,7 @@ print.prior_robustness <- function(x, ...) {
   cat("  (Higher is better; 1.0 = perfect robustness)\n\n")
 
   if (length(x$concerning_parameters) > 0) {
-    cat("⚠️  Parameters with Low Robustness:\n")
+    cat("[WARN] Parameters with Low Robustness:\n")
     for (param in x$concerning_parameters) {
       cat("  -", param, "\n")
     }
@@ -151,6 +152,9 @@ print.prior_robustness <- function(x, ...) {
 }
 
 # Helper functions for prior_robustness
+
+#' Extract posterior summary
+#' @keywords internal
 extract_posterior_summary <- function(model, parameters, credible_level) {
   posterior_draws <- posterior::as_draws_df(model)
 
@@ -170,6 +174,8 @@ extract_posterior_summary <- function(model, parameters, credible_level) {
   return(summary_list)
 }
 
+#' Generate prior perturbations
+#' @keywords internal
 generate_prior_perturbations <- function(priors, direction, dimensions) {
   perturbations <- list()
 
@@ -203,6 +209,8 @@ generate_prior_perturbations <- function(priors, direction, dimensions) {
   return(perturbations)
 }
 
+#' Compute sensitivity metric
+#' @keywords internal
 compute_sensitivity_metric <- function(original, perturbed, metric_type) {
   if (metric_type == "KL") {
     # KL divergence between posteriors
@@ -217,12 +225,16 @@ compute_sensitivity_metric <- function(original, perturbed, metric_type) {
   return(0.5)  # Default neutral value
 }
 
+#' Compute robustness index
+#' @keywords internal
 compute_robustness_index <- function(sensitivity_surfaces) {
   metrics <- sapply(sensitivity_surfaces, function(x) x$metric_value)
   robustness <- 1 / (1 + mean(metrics, na.rm = TRUE))
   return(robustness)
 }
 
+#' Identify concerning parameters
+#' @keywords internal
 identify_concerning_parameters <- function(sensitivity_surfaces, threshold) {
   concerning <- character(0)
 
@@ -235,6 +247,8 @@ identify_concerning_parameters <- function(sensitivity_surfaces, threshold) {
   return(unique(concerning))
 }
 
+#' Generate recommendations
+#' @keywords internal
 generate_recommendations <- function(concerning_parameters, priors) {
   recommendations <- character(0)
 
@@ -251,6 +265,8 @@ generate_recommendations <- function(concerning_parameters, priors) {
   return(recommendations)
 }
 
+#' Create robustness plots
+#' @keywords internal
 create_robustness_plots <- function(result, ...) {
   # Placeholder for visualization
   return(NULL)
