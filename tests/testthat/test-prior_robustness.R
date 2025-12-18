@@ -1,19 +1,27 @@
-# Tests for prior_robustness function
+library(testthat)
+library(brms)
+library(checkmate)
+
+# Helper to fit a fast but convergent model for testing
+fit_test_model <- function(formula, data) {
+  brm(
+    formula,
+    data = data,
+    chains = 2,      # Minimum chains for R-hat
+    iter = 2000,     # Sufficient iterations for convergence
+    warmup = 1000,
+    refresh = 0,
+    silent = 2,      # Suppress startup messages
+    seed = 123       # reproducible
+  )
+}
 
 test_that("prior_robustness validates inputs correctly", {
   skip_if_not_installed("brms")
-  library(brms)
 
   # Create simple test model
   test_data <- data.frame(y = rnorm(50), x = rnorm(50))
-  fit <- brm(
-    y ~ x,
-    data = test_data,
-    chains = 1,
-    iter = 500,
-    refresh = 0,
-    verbose = FALSE
-  )
+  fit <- fit_test_model(y ~ x, test_data)
 
   # Test invalid model
   expect_error(
@@ -36,17 +44,9 @@ test_that("prior_robustness validates inputs correctly", {
 
 test_that("prior_robustness computes robustness index", {
   skip_if_not_installed("brms")
-  library(brms)
 
   test_data <- data.frame(y = rnorm(50), x = rnorm(50))
-  fit <- brm(
-    y ~ x,
-    data = test_data,
-    chains = 1,
-    iter = 500,
-    refresh = 0,
-    verbose = FALSE
-  )
+  fit <- fit_test_model(y ~ x, test_data)
 
   result <- prior_robustness(
     model = fit,
@@ -71,7 +71,6 @@ test_that("prior_robustness computes robustness index", {
 
 test_that("prior_robustness identifies concerning parameters", {
   skip_if_not_installed("brms")
-  library(brms)
 
   test_data <- data.frame(
     y = rnorm(50),
@@ -79,14 +78,7 @@ test_that("prior_robustness identifies concerning parameters", {
     x2 = rnorm(50)
   )
 
-  fit <- brm(
-    y ~ x1 + x2,
-    data = test_data,
-    chains = 1,
-    iter = 500,
-    refresh = 0,
-    verbose = FALSE
-  )
+  fit <- fit_test_model(y ~ x1 + x2, test_data)
 
   result <- prior_robustness(
     model = fit,
@@ -104,17 +96,9 @@ test_that("prior_robustness identifies concerning parameters", {
 
 test_that("prior_robustness generates recommendations", {
   skip_if_not_installed("brms")
-  library(brms)
 
   test_data <- data.frame(y = rnorm(50), x = rnorm(50))
-  fit <- brm(
-    y ~ x,
-    data = test_data,
-    chains = 1,
-    iter = 500,
-    refresh = 0,
-    verbose = FALSE
-  )
+  fit <- fit_test_model(y ~ x, test_data)
 
   result <- prior_robustness(
     model = fit,
@@ -133,17 +117,9 @@ test_that("prior_robustness generates recommendations", {
 
 test_that("prior_robustness handles different metrics", {
   skip_if_not_installed("brms")
-  library(brms)
 
   test_data <- data.frame(y = rnorm(50), x = rnorm(50))
-  fit <- brm(
-    y ~ x,
-    data = test_data,
-    chains = 1,
-    iter = 500,
-    refresh = 0,
-    verbose = FALSE
-  )
+  fit <- fit_test_model(y ~ x, test_data)
 
   # Test KL metric
   result_kl <- prior_robustness(
@@ -168,17 +144,9 @@ test_that("prior_robustness handles different metrics", {
 
 test_that("prior_robustness respects credible_level parameter", {
   skip_if_not_installed("brms")
-  library(brms)
 
   test_data <- data.frame(y = rnorm(50), x = rnorm(50))
-  fit <- brm(
-    y ~ x,
-    data = test_data,
-    chains = 1,
-    iter = 500,
-    refresh = 0,
-    verbose = FALSE
-  )
+  fit <- fit_test_model(y ~ x, test_data)
 
   result <- prior_robustness(
     model = fit,
@@ -194,17 +162,9 @@ test_that("prior_robustness respects credible_level parameter", {
 
 test_that("print.prior_robustness works without error", {
   skip_if_not_installed("brms")
-  library(brms)
 
   test_data <- data.frame(y = rnorm(50), x = rnorm(50))
-  fit <- brm(
-    y ~ x,
-    data = test_data,
-    chains = 1,
-    iter = 500,
-    refresh = 0,
-    verbose = FALSE
-  )
+  fit <- fit_test_model(y ~ x, test_data)
 
   result <- prior_robustness(
     model = fit,
@@ -219,7 +179,6 @@ test_that("print.prior_robustness works without error", {
 
 test_that("prior_robustness handles multiple parameters", {
   skip_if_not_installed("brms")
-  library(brms)
 
   test_data <- data.frame(
     y = rnorm(50),
@@ -227,14 +186,7 @@ test_that("prior_robustness handles multiple parameters", {
     x2 = rnorm(50)
   )
 
-  fit <- brm(
-    y ~ x1 + x2,
-    data = test_data,
-    chains = 1,
-    iter = 500,
-    refresh = 0,
-    verbose = FALSE
-  )
+  fit <- fit_test_model(y ~ x1 + x2, test_data)
 
   result <- prior_robustness(
     model = fit,
@@ -252,17 +204,9 @@ test_that("prior_robustness handles multiple parameters", {
 
 test_that("prior_robustness handles plot parameter", {
   skip_if_not_installed("brms")
-  library(brms)
 
   test_data <- data.frame(y = rnorm(50), x = rnorm(50))
-  fit <- brm(
-    y ~ x,
-    data = test_data,
-    chains = 1,
-    iter = 500,
-    refresh = 0,
-    verbose = FALSE
-  )
+  fit <- fit_test_model(y ~ x, test_data)
 
   # With plot = FALSE
   result_no_plot <- prior_robustness(
@@ -273,7 +217,7 @@ test_that("prior_robustness handles plot parameter", {
   )
   expect_null(result_no_plot$plots)
 
-  # With plot = TRUE (may or may not have plots, depending on implementation)
+  # With plot = TRUE
   result_with_plot <- prior_robustness(
     model = fit,
     prior_specifications = list(p1 = prior(normal(0, 1), class = "b")),

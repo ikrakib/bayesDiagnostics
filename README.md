@@ -1,10 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-\`\`\`{r, include = FALSE} knitr::opts_chunk\$set( collapse = TRUE,
-comment = “\#\>”, fig.path = “man/figures/README-”, out.width = “100%” )
-\`\`\`
-
 # bayesDiagnostics
 
 <!-- badges: start -->
@@ -13,7 +9,7 @@ comment = “\#\>”, fig.path = “man/figures/README-”, out.width = “100%�
 
 ## Overview
 
-\`bayesDiagnostics\` provides comprehensive tools for Bayesian model
+`bayesDiagnostics` provides comprehensive tools for Bayesian model
 diagnostics and comparison, addressing critical gaps in existing
 Bayesian diagnostic tools.
 
@@ -34,65 +30,78 @@ Bayesian diagnostic tools.
 
 Install from GitHub:
 
-\`\`\`r devtools::install_github(“ikrakib/bayesDiagnostics”) \`\`\`
+``` r
+devtools::install_github("ikrakib/bayesDiagnostics")
+```
 
-Or from CRAN (when available):
+Once available on CRAN:
 
-\`\`\`r install.packages(“bayesDiagnostics”) \`\`\`
+``` r
+install.packages("bayesDiagnostics")
+```
 
 ## Quick Example
 
-\`\`\`r library(bayesDiagnostics) library(brms)
+``` r
+library(bayesDiagnostics)
+library(brms)
 
 # Fit Bayesian model
-
-fit \<- brm(mpg ~ hp + wt, data = mtcars)
+fit <- brm(mpg ~ hp + wt, data = mtcars)
 
 # Conduct prior sensitivity analysis
+result <- prior_sensitivity(
+  model = fit,
+  parameters = c("b_hp", "b_wt"),
+  prior_grid = list(
+    weak = prior(normal(0, 10), class = b),
+    strong = prior(normal(0, 1), class = b)
+  )
+)
 
-result \<- prior_sensitivity( model = fit, parameters = c(“b_hp”,
-“b_wt”), prior_grid = list( weak = prior(normal(0, 10), class = b),
-strong = prior(normal(0, 1), class = b) ) )
-
-print(result) plot(result) \`\`\`
+print(result)
+plot(result)
+```
 
 ## Functions by Category
 
 ### Category 1: Prior Sensitivity
 
-- \`prior_sensitivity()\` - Compare posteriors across priors
-- \`prior_predictive_check()\` - Validate prior specifications
-- \`prior_robustness()\` - Test prior hyperparameter sensitivity
-- \`prior_elicitation_helper()\` - Match expert beliefs to distributions
+- `prior_sensitivity()` - Compare posteriors across priors
+- `prior_predictive_check()` - Validate prior specifications
+- `prior_robustness()` - Test prior hyperparameter sensitivity
+- `prior_elicitation_helper()` - Match expert beliefs to distributions
 
 ### Category 2: Posterior Predictive Checks
 
-- \`automated_ppc()\` - Comprehensive PPC battery
-- \`ppc_crossvalidation()\` - K-fold CV with PPCs
-- \`graphical_ppc()\` - Bayesplot-based visualizations
-- \`bayesian_p_values()\` - Test statistics for model checking
+- `automated_ppc()` - Comprehensive PPC battery
+- `ppc_crossvalidation()` - K-fold CV with PPCs
+- `graphical_ppc()` - Bayesplot-based visualizations
+- `bayesian_p_values()` - Test statistics for model checking
 
 ### Category 3: Model Comparison
 
-- \`model_comparison_suite()\` - Multi-method comparison
-- \`bayes_factor_comparison()\` - Bridge sampling for Bayes factors
-- \`predictive_performance()\` - Out-of-sample assessment
+- `model_comparison_suite()` - Multi-method comparison
+- `bayes_factor_comparison()` - Bridge sampling for Bayes factors
+- `predictive_performance()` - Out-of-sample assessment
 
 ### Category 4: Convergence Diagnostics
 
-- \`hierarchical_convergence()\` - Hierarchical model diagnostics
-- \`effective_sample_size_diagnostics()\` - ESS assessment
+- `hierarchical_convergence()` - Hierarchical model diagnostics
+- `effective_sample_size_diagnostics()` - ESS assessment
 
 ### Category 5: Prior Elicitation & Utilities
 
-- \`expert_prior_elicitation()\` - Interactive prior elicitation
-- \`prior_simulation()\` - Simulate from prior
+- `expert_prior_elicitation()` - Interactive prior elicitation
+- `prior_simulation()` - Simulate from prior
 
 ## Documentation
 
-- [Getting Started Vignette](vignettes/bayesDiagnostics.Rmd)
-- [Function Reference](https://ikrakib.github.io/bayesDiagnostics)
-- [CRAN Page](https://cran.r-project.org/package=bayesDiagnostics)
+For detailed documentation, see the package vignettes:
+
+``` r
+vignette("bayesDiagnostics")
+```
 
 ## Contributing
 
@@ -106,4 +115,6 @@ Contributions welcome! Please:
 
 ## Citation
 
-\`\`\`r citation(“bayesDiagnostics”)
+``` r
+citation("bayesDiagnostics")
+```

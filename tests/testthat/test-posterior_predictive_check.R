@@ -2,9 +2,9 @@ test_that("posterior_predictive_check computes statistics", {
   skip_if_not_installed("brms")
   library(brms)
 
-  # Fit simple model
+  # Fit simple model with enough iterations to avoid ESS warnings
   test_data <- data.frame(y = rnorm(50), x = rnorm(50))
-  fit <- brm(y ~ x, data = test_data, chains = 1, iter = 500, refresh = 0)
+  fit <- brm(y ~ x, data = test_data, chains = 1, iter = 2000, warmup = 1000, refresh = 0)
 
   # Run PPC
   result <- posterior_predictive_check(
@@ -26,7 +26,8 @@ test_that("posterior_predictive_check handles multiple statistics", {
   library(brms)
 
   test_data <- data.frame(y = rnorm(50), x = rnorm(50))
-  fit <- brm(y ~ x, data = test_data, chains = 1, iter = 500, refresh = 0)
+  # Increased iterations for stability
+  fit <- brm(y ~ x, data = test_data, chains = 1, iter = 2000, warmup = 1000, refresh = 0)
 
   result <- posterior_predictive_check(
     model = fit,

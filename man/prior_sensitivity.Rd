@@ -53,13 +53,6 @@ posterior inferences are to alternative prior specifications.
 Prior sensitivity analysis assesses how much posterior inferences depend
 on the choice of prior distribution. Small sensitivity metrics indicate
 that conclusions are robust to prior specification.
-
-Available comparison metrics:
-\itemize{
-\item KL: Kullback-Leibler divergence (0 = identical, ∞ = maximally different)
-\item Wasserstein: Optimal transport distance (more interpretable than KL)
-\item overlap: Coefficient of overlap (0 = disjoint, 1 = identical)
-}
 }
 \examples{
 \dontrun{
@@ -70,8 +63,8 @@ result <- prior_sensitivity(
   model = fit,
   parameters = c("b_hp", "b_wt"),
   prior_grid = list(
-    weak = prior(normal(0, 10), class = b),
-    strong = prior(normal(0, 1), class = b)
+    weak = set_prior("normal(0, 10)", class = "b"),
+    strong = set_prior("normal(0, 1)", class = "b")
   ),
   comparison_metric = "KL"
 )

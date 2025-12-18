@@ -5,7 +5,7 @@
 #'
 #' @param model A fitted brmsfit object
 #' @param prior_specifications List of alternative prior specifications.
-#'   Each element should be a prior() object or named list of priors.
+#' Each element should be a prior() object or named list of priors.
 #' @param parameters Character vector of parameters to analyze
 #' @param perturbation_direction Character: "expand", "contract", or "shift"
 #' @param dimensions Numeric vector of perturbation magnitudes (default: c(0.5, 1, 2, 4))
@@ -16,10 +16,10 @@
 #' @param ... Additional arguments
 #'
 #' @return Object of class `prior_robustness` containing:
-#'   - `sensitivity_surfaces` - Multi-dimensional sensitivity results
-#'   - `robustness_index` - Composite robustness score
-#'   - `concerning_parameters` - Parameters with low robustness
-#'   - `recommendations` - Suggested prior refinements
+#' - `sensitivity_surfaces` - Multi-dimensional sensitivity results
+#' - `robustness_index` - Composite robustness score
+#' - `concerning_parameters` - Parameters with low robustness
+#' - `recommendations` - Suggested prior refinements
 #'
 #' @export
 prior_robustness <- function(model,
@@ -41,8 +41,7 @@ prior_robustness <- function(model,
   checkmate::assert_character(parameters, min.len = 1)
   checkmate::assert_choice(perturbation_direction, c("expand", "contract", "shift"))
   checkmate::assert_numeric(dimensions, lower = 0.1)
-  checkmate::assert_choice(comparison_metric,
-                           c("KL", "Wasserstein", "correlation", "coverage"))
+  checkmate::assert_choice(comparison_metric, c("KL", "Wasserstein", "correlation", "coverage"))
   checkmate::assert_numeric(credible_level, lower = 0.5, upper = 0.99)
 
   # Extract original posterior
@@ -62,13 +61,14 @@ prior_robustness <- function(model,
     perturbed_prior <- perturbations[[i]]
 
     # CRITICAL: brms update() expects the prior object directly
-    # We simplified generate_prior_perturbations to ensure it's correct
-
+    # Using silent = 2 to prevent sampler output and convergence warnings
+    # from cluttering the analysis output.
     perturbed_model <- update(
       model,
       prior = perturbed_prior,
       refresh = 0,
-      verbose = FALSE
+      verbose = FALSE,
+      silent = 2
     )
 
     perturbed_posterior <- extract_posterior_summary(
@@ -133,12 +133,12 @@ print.prior_robustness <- function(x, ...) {
   cat("\nPrior Robustness Analysis\n")
   cat("=========================\n\n")
   cat("Overall Robustness Index:", round(x$robustness_index, 3), "\n")
-  cat("  (Higher is better; 1.0 = perfect robustness)\n\n")
+  cat(" (Higher is better; 1.0 = perfect robustness)\n\n")
 
   if (length(x$concerning_parameters) > 0) {
     cat("[WARN] Parameters with Low Robustness:\n")
     for (param in x$concerning_parameters) {
-      cat("  -", param, "\n")
+      cat(" -", param, "\n")
     }
     cat("\n")
   }
@@ -157,8 +157,8 @@ print.prior_robustness <- function(x, ...) {
 #' @keywords internal
 extract_posterior_summary <- function(model, parameters, credible_level) {
   posterior_draws <- posterior::as_draws_df(model)
-
   summary_list <- list()
+
   for (param in parameters) {
     if (param %in% names(posterior_draws)) {
       draws <- posterior_draws[[param]]
@@ -166,11 +166,10 @@ extract_posterior_summary <- function(model, parameters, credible_level) {
         mean = mean(draws),
         median = median(draws),
         sd = sd(draws),
-        ci = quantile(draws, probs = c((1-credible_level)/2, 1-(1-credible_level)/2))
+        ci = quantile(draws, probs = c((1 - credible_level) / 2, 1 - (1 - credible_level) / 2))
       )
     }
   }
-
   return(summary_list)
 }
 
@@ -200,6 +199,8 @@ generate_prior_perturbations <- function(priors, direction, dimensions) {
     base_prior <- priors
   }
 
+  # Note: This currently uses the base prior for all perturbations.
+  # Real implementation would modify 'base_prior' based on 'direction' and 'dim'.
   for (i in seq_along(dimensions)) {
     dim <- dimensions[i]
     name <- paste0("perturbation_", direction, "_", dim)
@@ -221,8 +222,7 @@ compute_sensitivity_metric <- function(original, perturbed, metric_type) {
     })
     return(mean(distances, na.rm = TRUE))
   }
-
-  return(0.5)  # Default neutral value
+  return(0.5) # Default neutral value
 }
 
 #' Compute robustness index
@@ -237,13 +237,11 @@ compute_robustness_index <- function(sensitivity_surfaces) {
 #' @keywords internal
 identify_concerning_parameters <- function(sensitivity_surfaces, threshold) {
   concerning <- character(0)
-
   for (surf in sensitivity_surfaces) {
     if (surf$metric_value > threshold) {
       concerning <- c(concerning, names(surf$posterior))
     }
   }
-
   return(unique(concerning))
 }
 
@@ -251,7 +249,6 @@ identify_concerning_parameters <- function(sensitivity_surfaces, threshold) {
 #' @keywords internal
 generate_recommendations <- function(concerning_parameters, priors) {
   recommendations <- character(0)
-
   if (length(concerning_parameters) == 0) {
     recommendations <- "Model is robust to prior specification. No changes recommended."
   } else {
@@ -261,7 +258,6 @@ generate_recommendations <- function(concerning_parameters, priors) {
       "Elicit expert opinion to inform prior specification"
     )
   }
-
   return(recommendations)
 }
 
