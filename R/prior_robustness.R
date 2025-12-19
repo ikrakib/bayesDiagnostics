@@ -213,17 +213,44 @@ generate_prior_perturbations <- function(priors, direction, dimensions) {
 #' Compute sensitivity metric
 #' @keywords internal
 compute_sensitivity_metric <- function(original, perturbed, metric_type) {
+  if (length(original) == 0) return(NA_real_)
+
   if (metric_type == "KL") {
-    # KL divergence between posteriors
     distances <- sapply(names(original), function(param) {
+      if (is.null(original[[param]]) || is.null(perturbed[[param]])) {
+        return(NA_real_)
+      }
+
       orig_mean <- original[[param]]$mean
       pert_mean <- perturbed[[param]]$mean
-      abs(orig_mean - pert_mean) / (original[[param]]$sd + 0.001)
+
+      denom <- original[[param]]$sd
+      if (is.na(denom) || denom < 1e-9) denom <- 1e-9
+
+      abs(orig_mean - pert_mean) / denom
     })
+
+    if (length(distances) == 0 || !is.numeric(distances)) return(NA_real_)
+
     return(mean(distances, na.rm = TRUE))
   }
-  return(0.5) # Default neutral value
+
+  if (metric_type == "Wasserstein") {
+    distances <- sapply(names(original), function(param) {
+      if (is.null(original[[param]]) || is.null(perturbed[[param]])) {
+        return(NA_real_)
+      }
+      abs(original[[param]]$mean - perturbed[[param]]$mean) +
+        abs(original[[param]]$sd - perturbed[[param]]$sd)
+    })
+
+    if (length(distances) == 0 || !is.numeric(distances)) return(NA_real_)
+    return(mean(distances, na.rm = TRUE))
+  }
+
+  return(0.5)
 }
+
 
 #' Compute robustness index
 #' @keywords internal
@@ -238,12 +265,19 @@ compute_robustness_index <- function(sensitivity_surfaces) {
 identify_concerning_parameters <- function(sensitivity_surfaces, threshold) {
   concerning <- character(0)
   for (surf in sensitivity_surfaces) {
-    if (surf$metric_value > threshold) {
-      concerning <- c(concerning, names(surf$posterior))
+    val <- surf$metric_value
+
+    if (!is.na(val) && val > threshold) {
+      concern_params <- names(surf$posterior)
+      if (!is.null(concern_params) && length(concern_params) > 0) {
+        concerning <- c(concerning, concern_params)
+      }
     }
   }
+
   return(unique(concerning))
 }
+
 
 #' Generate recommendations
 #' @keywords internal
