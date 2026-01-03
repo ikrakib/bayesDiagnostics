@@ -1,8 +1,8 @@
 ---
-title: "introduction-to-bayesDiagnostics"
+title: "Introduction to bayesDiagnostics"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{introduction-to-bayesDiagnostics}
+  %\VignetteIndexEntry{Introduction to bayesDiagnostics}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -10,10 +10,757 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
 )
 ```
 
+# bayesDiagnostics: Comprehensive Bayesian Model Diagnostics
+
+The **bayesDiagnostics** package provides a comprehensive suite of diagnostic tools for Bayesian models fitted with `brms`, `rstan`, and other popular Bayesian modeling packages. This vignette demonstrates all major functions organized by diagnostic category.
+
 ```{r setup}
 library(bayesDiagnostics)
+library(brms)
+library(ggplot2)
 ```
+
+## Overview of Package Functions
+
+The package contains **18 main functions** organized into 5 categories:
+
+1. **MCMC Convergence Diagnostics** (3 functions)
+2. **Posterior Predictive Checks** (5 functions)
+3. **Prior Specification & Sensitivity** (3 functions)
+4. **Model Comparison** (3 functions)
+5. **Utilities & Reporting** (4 functions)
+
+---
+
+## Part 1: MCMC Convergence Diagnostics
+
+### 1.1 Quick MCMC Diagnostics Summary
+
+The `mcmc_diagnostics_summary()` function provides a comprehensive overview of MCMC convergence, including R-hat, ESS, and NUTS-specific diagnostics.
+
+```{r mcmc-diagnostics, eval=FALSE}
+# Fit a simple model
+data <- data.frame(
+  y = rnorm(100, mean = 5, sd = 2),
+  x1 = rnorm(100),
+  x2 = rnorm(100)
+)
+
+fit <- brm(y ~ x1 + x2, data = data, chains = 4, iter = 2000, refresh = 0)
+
+# Run comprehensive diagnostics
+diag <- mcmc_diagnostics_summary(fit, rhat_threshold = 1.01, ess_threshold = 400)
+print(diag)
+
+# Check results
+diag$converged  # TRUE/FALSE
+diag$summary_table  # Full diagnostic table
+diag$divergences  # Number of divergent transitions
+```
+
+**What it checks:**
+- **R-hat** values (should be < 1.01)
+- **Bulk ESS** and **Tail ESS** (should be > 400)
+- **Divergent transitions** (should be 0)
+- **Tree depth saturation** (NUTS-specific)
+
+---
+
+### 1.2 Effective Sample Size Diagnostics
+
+The `effective_sample_size_diagnostics()` function provides detailed ESS analysis with visual diagnostics.
+
+```{r ess-diagnostics, eval=FALSE}
+# Detailed ESS analysis
+ess_diag <- effective_sample_size_diagnostics(
+  model = fit,
+  parameters = c("b_x1", "b_x2", "sigma"),
+  min_ess = 400,
+  by_chain = TRUE,
+  plot = TRUE
+)
+
+print(ess_diag)
+plot(ess_diag)
+
+# Access specific components
+ess_diag$ess_summary        # Summary statistics
+ess_diag$bulk_ess           # Bulk ESS per parameter
+ess_diag$tail_ess           # Tail ESS per parameter
+ess_diag$by_chain_ess       # Per-chain ESS breakdown
+ess_diag$problematic_params # Parameters with low ESS
+ess_diag$recommendations    # Actionable suggestions
+```
+
+**Interpretation:**
+- **Bulk ESS**: Measures precision of posterior mean/median estimates
+- **Tail ESS**: Measures precision of credible interval bounds
+- **Per-chain ESS**: Identifies which specific chains have issues
+
+---
+
+### 1.3 Hierarchical Model Convergence
+
+For hierarchical/multilevel models, use `hierarchical_convergence()` to check group-level and population-level parameters separately.
+
+```{r hierarchical-convergence, eval=FALSE}
+# Fit hierarchical model
+data_hier <- data.frame(
+  y = rnorm(200),
+  x = rnorm(200),
+  group = rep(1:10, each = 20)
+)
+
+fit_hier <- brm(
+  y ~ x + (1 + x | group),
+  data = data_hier,
+  chains = 4,
+  refresh = 0
+)
+
+# Check hierarchical convergence
+hier_conv <- hierarchical_convergence(
+  model = fit_hier,
+  group_vars = "group",
+  plot = TRUE
+)
+
+print(hier_conv)
+plot(hier_conv)
+```
+
+**What it provides:**
+- Group-level vs. population-level convergence breakdown
+- Variance component diagnostics
+- Shrinkage assessment
+- Visual comparison of group-level parameters
+
+---
+
+## Part 2: Posterior Predictive Checks (PPC)
+
+### 2.1 Comprehensive Posterior Predictive Checks
+
+The `posterior_predictive_check()` function is the workhorse for model validation.
+
+```{r ppc-basic, eval=FALSE}
+# Basic PPC with multiple test statistics
+ppc_result <- posterior_predictive_check(
+  model = fit,
+  observed_data = data$y,
+  n_samples = 1000,
+  test_statistics = c("mean", "sd", "median", "min", "max", "skewness", "kurtosis"),
+  plot = TRUE
+)
+
+print(ppc_result)
+plot(ppc_result)
+
+# Access results
+ppc_result$observed_stats      # Observed test statistics
+ppc_result$replicated_stats    # Posterior predictive statistics
+ppc_result$p_values            # Bayesian p-values (should be ~0.5)
+```
+
+**Interpretation Guide:**
+- **p-value ≈ 0.5**: Good fit (model captures the statistic well)
+- **p-value < 0.05 or > 0.95**: Model misspecification
+- **p-value near 0**: Model underestimates the statistic
+- **p-value near 1**: Model overestimates the statistic
+
+---
+
+### 2.2 Automated PPC
+
+For quick diagnostic checks across multiple statistics, use `automated_ppc()`:
+
+```{r automated-ppc, eval=FALSE}
+# Automated checks with flagging
+auto_ppc <- automated_ppc(
+  model = fit,
+  observed_data = data$y,
+  n_samples = 1000,
+  p_value_threshold = 0.05
+)
+
+print(auto_ppc)
+
+# Check for issues
+auto_ppc$diagnostics  # Table with all statistics and flags
+auto_ppc$flags        # Text warnings for problematic statistics
+```
+
+**When to use:**
+- Quick model validation
+- Screening for gross misspecification
+- Automated reporting workflows
+
+---
+
+### 2.3 Graphical PPC
+
+Create publication-quality PPC visualizations:
+
+```{r graphical-ppc, eval=FALSE}
+# Density overlay
+p1 <- graphical_ppc(fit, data$y, type = "density", n_draws = 50)
+print(p1)
+
+# Prediction intervals
+p2 <- graphical_ppc(fit, data$y, type = "intervals", n_draws = 50)
+print(p2)
+
+# Ribbon plot (useful for ordered/time-series data)
+p3 <- graphical_ppc(fit, data$y, type = "ribbon", n_draws = 50)
+print(p3)
+```
+
+---
+
+### 2.4 LOO Cross-Validation PPC
+
+The `ppc_crossvalidation()` function performs Leave-One-Out Probability Integral Transform (LOO-PIT) checks:
+
+```{r ppc-loo, eval=FALSE}
+# LOO-PIT check
+loo_ppc <- ppc_crossvalidation(
+  model = fit,
+  observed_y = data$y,
+  n_draws = NULL  # Use all draws for accuracy
+)
+
+print(loo_ppc)
+plot(loo_ppc)
+
+# Inspect results
+loo_ppc$pit_values   # Should be ~Uniform(0,1) if well-calibrated
+loo_ppc$loo_result   # LOO object
+loo_ppc$weighted     # Whether weighted PIT was used
+```
+
+**Interpretation:**
+- **Uniform PIT distribution**: Model is well-calibrated
+- **U-shaped**: Over-dispersed predictions
+- **Inverse-U**: Under-dispersed predictions
+- **Skewed**: Systematic bias in predictions
+
+---
+
+### 2.5 Custom Bayesian P-Values
+
+For custom test statistics, use the flexible `bayesian_p_values()` utility:
+
+```{r custom-pvalues, eval=FALSE}
+# Generate posterior predictive samples
+yrep <- posterior_predict(fit, ndraws = 1000)
+
+# Define custom test statistic
+custom_stat <- function(x) max(x) - min(x)  # Range
+
+# Calculate Bayesian p-value
+result <- bayesian_p_values(
+  yrep = yrep,
+  y = data$y,
+  statistic = custom_stat
+)
+
+result$observed_value     # Observed range
+result$replicated_values  # Posterior predictive ranges
+result$p_value           # P(replicated ≥ observed)
+```
+
+---
+
+## Part 3: Prior Specification & Sensitivity Analysis
+
+### 3.1 Prior Elicitation Helper
+
+The `prior_elicitation_helper()` translates expert knowledge into statistical priors:
+
+```{r prior-elicitation, eval=FALSE}
+# Define expert beliefs
+expert_input <- list(
+  parameter_name = "treatment_effect",
+  plausible_range = c(-0.5, 1.5),      # Plausible values
+  most_likely_value = 0.3,             # Best guess
+  confidence = 0.8                      # How confident (0-1)
+)
+
+# Get prior recommendations
+prior_rec <- prior_elicitation_helper(
+  expert_beliefs = expert_input,
+  parameter_type = "continuous",
+  method = "quantile",
+  data_sample = rnorm(100, 0.3, 0.5),  # Optional: existing data
+  visualize = TRUE
+)
+
+print(prior_rec)
+
+# Use recommended prior
+prior_rec$recommended_prior   # brms::prior object
+prior_rec$alternatives        # Alternative priors for sensitivity
+prior_rec$sensitivity_note    # Guidance
+```
+
+**Parameter types:**
+- `"continuous"`: Normal, Student-t, log-normal
+- `"discrete"`: Poisson, negative binomial
+- `"proportion"`: Beta distribution
+
+---
+
+### 3.2 Prior Sensitivity Analysis
+
+The `prior_sensitivity()` function assesses robustness to prior choice:
+
+```{r prior-sensitivity, eval=FALSE}
+# Define alternative priors
+prior_grid <- list(
+  weak = set_prior("normal(0, 10)", class = "b"),
+  moderate = set_prior("normal(0, 2)", class = "b"),
+  strong = set_prior("normal(0, 0.5)", class = "b")
+)
+
+# Run sensitivity analysis
+sens_result <- prior_sensitivity(
+  model = fit,
+  parameters = c("b_x1", "b_x2"),
+  prior_grid = prior_grid,
+  comparison_metric = "KL",  # or "Wasserstein", "overlap"
+  plot = TRUE,
+  n_draws = 2000
+)
+
+print(sens_result)
+plot(sens_result)
+
+# Check sensitivity
+sens_result$sensitivity_metrics  # How much posteriors differ
+```
+
+**Metrics:**
+- **KL divergence**: Information-theoretic difference
+- **Wasserstein distance**: L1 distance between distributions
+- **Overlap coefficient**: Proportion of overlapping density
+
+**Interpretation:**
+- **Low sensitivity**: Conclusions robust to prior choice ✓
+- **High sensitivity**: Data is weak; prior strongly influences results 
+
+---
+
+### 3.3 Prior Robustness Analysis
+
+For comprehensive multi-dimensional sensitivity assessment:
+
+```{r prior-robustness, eval=FALSE}
+robust_result <- prior_robustness(
+  model = fit,
+  prior_specifications = prior_grid,
+  parameters = c("b_x1", "b_x2"),
+  perturbation_direction = "expand",  # or "contract", "shift"
+  dimensions = c(0.5, 1, 2, 4),       # Scaling factors
+  comparison_metric = "KL",
+  plot = TRUE
+)
+
+print(robust_result)
+
+# Check robustness
+robust_result$robustness_index       # Composite score (higher = more robust)
+robust_result$concerning_parameters  # Parameters with low robustness
+robust_result$recommendations        # What to do
+```
+
+---
+
+## Part 4: Model Comparison
+
+### 4.1 Comprehensive Model Comparison Suite
+
+The `model_comparison_suite()` compares multiple models using information criteria:
+
+```{r model-comparison, eval=FALSE}
+# Fit competing models
+fit1 <- brm(y ~ x1, data = data, refresh = 0)
+fit2 <- brm(y ~ x1 + x2, data = data, refresh = 0)
+fit3 <- brm(y ~ x1 * x2, data = data, refresh = 0)
+
+# Compare models
+comparison <- model_comparison_suite(
+  Model_1 = fit1,
+  Model_2 = fit2,
+  Model_3 = fit3,
+  criterion = "all",  # LOO, WAIC, Bayes R²
+  plot = TRUE,
+  detailed = TRUE
+)
+
+print(comparison)
+plot(comparison)
+
+# Results
+comparison$comparison_table   # All metrics
+comparison$ic_differences     # ΔLOO, ΔWAIC, model weights
+comparison$plots              # Visualization
+```
+
+**Metrics explained:**
+- **LOO-ELPD**: Leave-one-out expected log predictive density (higher is better)
+- **WAIC**: Widely Applicable Information Criterion (lower is better)
+- **Bayes R²**: Bayesian coefficient of determination
+- **Model weights**: Probability each model is best
+
+---
+
+### 4.2 Bayes Factor Comparison
+
+For direct model comparison via Bayes Factors:
+
+```{r bayes-factor, eval=FALSE}
+# Compare two models
+bf_result <- bayes_factor_comparison(
+  Model_A = fit1,
+  Model_B = fit2,
+  method = "bridge_sampling",  # or "waic"
+  repetitions = 5,
+  silent = TRUE
+)
+
+print(bf_result)
+
+# Interpretation
+bf_result$bayes_factor     # BF_{1,2}
+bf_result$log_bf           # Log Bayes Factor
+bf_result$interpretation   # Text interpretation
+
+# For 3+ models: pairwise comparisons
+bf_multi <- bayes_factor_comparison(fit1, fit2, fit3, method = "bridge_sampling")
+bf_multi$pairwise_comparisons
+```
+
+**Bayes Factor Interpretation (Kass & Raftery, 1995):**
+- **BF < 1**: Evidence for Model 2
+- **1-3**: Weak evidence for Model 1
+- **3-10**: Moderate evidence
+- **10-30**: Strong evidence
+- **> 30**: Very strong evidence
+
+---
+
+### 4.3 Predictive Performance Evaluation
+
+The `predictive_performance()` function evaluates out-of-sample predictions:
+
+```{r predictive-performance, eval=FALSE}
+# In-sample performance
+perf_in <- predictive_performance(
+  model = fit,
+  newdata = NULL,           # NULL = use training data
+  observed_y = data$y,
+  metrics = "all",          # RMSE, MAE, Coverage, CRPS
+  credible_level = 0.95,
+  n_draws = NULL
+)
+
+print(perf_in)
+plot(perf_in)
+
+# Out-of-sample performance
+test_data <- data.frame(x1 = rnorm(50), x2 = rnorm(50), y = rnorm(50))
+perf_out <- predictive_performance(
+  model = fit,
+  newdata = test_data,
+  observed_y = test_data$y,
+  metrics = "all"
+)
+
+# Compare metrics
+perf_in$point_metrics      # RMSE, MAE, Correlation
+perf_in$interval_metrics   # Coverage, Interval Width
+perf_in$proper_scores      # CRPS (lower is better)
+perf_in$prediction_summary # Per-observation predictions
+```
+
+**Key metrics:**
+- **RMSE/MAE**: Prediction error (lower is better)
+- **Coverage**: % of observations within credible intervals (should ≈ 0.95)
+- **CRPS**: Continuous Ranked Probability Score (proper scoring rule)
+
+---
+
+## Part 5: Utilities & Comprehensive Reporting
+
+### 5.1 Extract Posterior (Unified Interface)
+
+The `extract_posterior_unified()` provides consistent posterior extraction across packages:
+
+```{r extract-posterior, eval=FALSE}
+# Extract as data frame
+draws_df <- extract_posterior_unified(
+  model = fit,
+  parameters = c("b_x1", "b_x2", "sigma"),
+  format = "draws_df",
+  ndraws = 1000,
+  include_warmup = FALSE,
+  chains = NULL  # All chains
+)
+
+# Extract as matrix
+draws_matrix <- extract_posterior_unified(fit, format = "draws_matrix")
+
+# Extract as array (iterations × chains × parameters)
+draws_array <- extract_posterior_unified(fit, format = "draws_array")
+
+# Extract as named list
+draws_list <- extract_posterior_unified(fit, format = "list")
+```
+
+**Supported model types:**
+- `brmsfit` (brms)
+- `stanfit` (rstan)
+- `stanreg` (rstanarm)
+- `CmdStanMCMC` (cmdstanr)
+- `mcmc.list` (coda)
+
+---
+
+### 5.2 Diagnostic Report Generation
+
+The `diagnostic_report()` function creates comprehensive HTML/PDF reports:
+
+```{r diagnostic-report, eval=FALSE}
+# Generate comprehensive report
+diagnostic_report(
+  model = fit,
+  output_file = "bayesian_model_diagnostics.pdf",
+  output_format = "pdf",  # or "html", "docx"
+  include_sections = c(
+    "model_summary",
+    "convergence",
+    "posterior_summary",
+    "recommendations"
+  ),
+  rhat_threshold = 1.01,
+  ess_threshold = 0.1,
+  open_report = TRUE  # Open automatically
+)
+```
+
+**Sections included:**
+1. **Model Summary**: Formula, family, data info
+2. **Convergence Diagnostics**: R-hat, ESS, divergences
+3. **Posterior Summary**: Parameter estimates with credible intervals
+4. **Recommendations**: Actionable suggestions for model improvement
+
+---
+
+## Complete Workflow Example
+
+Here's a complete Bayesian workflow using all major functions:
+
+```{r complete-workflow, eval=FALSE}
+# ===== STEP 1: FIT MODEL =====
+library(bayesDiagnostics)
+library(brms)
+
+# Simulate data
+set.seed(123)
+N <- 200
+data <- data.frame(
+  y = rnorm(N, mean = 3 + 2*rnorm(N) - 0.5*rnorm(N), sd = 1.5),
+  x1 = rnorm(N),
+  x2 = rnorm(N)
+)
+
+# Fit Bayesian model
+fit <- brm(
+  y ~ x1 + x2,
+  data = data,
+  prior = c(
+    prior(normal(0, 5), class = "b"),
+    prior(student_t(3, 0, 2.5), class = "sigma")
+  ),
+  chains = 4,
+  iter = 2000,
+  warmup = 1000,
+  refresh = 0
+)
+
+# ===== STEP 2: CONVERGENCE DIAGNOSTICS =====
+# Quick check
+diag <- mcmc_diagnostics_summary(fit)
+print(diag)
+
+# Detailed ESS analysis
+ess_diag <- effective_sample_size_diagnostics(fit, plot = TRUE)
+plot(ess_diag)
+
+# ===== STEP 3: POSTERIOR PREDICTIVE CHECKS =====
+# Comprehensive PPC
+ppc <- posterior_predictive_check(fit, observed_data = data$y, plot = TRUE)
+print(ppc)
+
+# Automated screening
+auto_ppc <- automated_ppc(fit, data$y)
+print(auto_ppc)
+
+# LOO cross-validation
+loo_ppc <- ppc_crossvalidation(fit, data$y)
+plot(loo_ppc)
+
+# ===== STEP 4: PRIOR SENSITIVITY =====
+# Define alternative priors
+prior_grid <- list(
+  weak = set_prior("normal(0, 10)", class = "b"),
+  moderate = set_prior("normal(0, 5)", class = "b"),
+  strong = set_prior("normal(0, 1)", class = "b")
+)
+
+# Test sensitivity
+sens <- prior_sensitivity(
+  fit,
+  parameters = c("b_x1", "b_x2"),
+  prior_grid = prior_grid,
+  plot = TRUE
+)
+print(sens)
+
+# ===== STEP 5: MODEL COMPARISON =====
+# Fit alternative models
+fit_x1 <- brm(y ~ x1, data = data, refresh = 0)
+fit_x1x2 <- fit
+fit_interaction <- brm(y ~ x1 * x2, data = data, refresh = 0)
+
+# Compare
+comp <- model_comparison_suite(
+  Linear = fit_x1,
+  Additive = fit_x1x2,
+  Interaction = fit_interaction,
+  criterion = "all",
+  plot = TRUE
+)
+print(comp)
+
+# ===== STEP 6: PREDICTIVE PERFORMANCE =====
+# Hold-out validation
+test_idx <- sample(1:N, 40)
+test_data <- data[test_idx, ]
+train_data <- data[-test_idx, ]
+
+fit_train <- update(fit, newdata = train_data, refresh = 0)
+
+perf <- predictive_performance(
+  fit_train,
+  newdata = test_data,
+  observed_y = test_data$y,
+  metrics = "all"
+)
+print(perf)
+plot(perf)
+
+# ===== STEP 7: GENERATE REPORT =====
+diagnostic_report(
+  fit,
+  output_file = "full_diagnostics.html",
+  output_format = "html",
+  include_sections = c("model_summary", "convergence", 
+                       "posterior_summary", "recommendations")
+)
+```
+
+---
+
+## Interpretation Guidelines
+
+### Convergence (MCMC)
+- **R-hat < 1.01**: Chains have converged
+- **ESS > 400**: Sufficient effective samples
+- **No divergences**: Sampler is behaving well
+- **R-hat > 1.01**: Run longer chains or reparameterize
+- **Divergences > 0**: Increase `adapt_delta` or reparameterize
+
+### Posterior Predictive Checks
+- **p-values ≈ 0.5**: Model captures test statistic
+- **LOO-PIT ~Uniform**: Well-calibrated predictions
+- **Extreme p-values**: Model misspecification
+
+### Prior Sensitivity
+- **Low KL/Wasserstein**: Robust to prior choice
+- **High sensitivity**: Need more data or informative priors
+
+### Model Comparison
+- **ΔLOO < 4**: Models are similar
+- **ΔLOO > 10**: Strong preference for best model
+- **Coverage ≈ 0.95**: Credible intervals well-calibrated
+
+---
+
+## Summary Table: All Functions
+
+| Function | Category | Purpose |
+|----------|----------|---------|
+| `mcmc_diagnostics_summary()` | Convergence | Quick MCMC diagnostic overview |
+| `effective_sample_size_diagnostics()` | Convergence | Detailed ESS analysis with plots |
+| `hierarchical_convergence()` | Convergence | Hierarchical model convergence |
+| `posterior_predictive_check()` | PPC | Comprehensive PPC with test statistics |
+| `automated_ppc()` | PPC | Automated screening across statistics |
+| `graphical_ppc()` | PPC | Publication-quality PPC plots |
+| `ppc_crossvalidation()` | PPC | LOO-PIT cross-validation checks |
+| `bayesian_p_values()` | PPC | Custom test statistic p-values |
+| `prior_elicitation_helper()` | Prior | Translate expert knowledge to priors |
+| `prior_sensitivity()` | Prior | Assess robustness to prior choice |
+| `prior_robustness()` | Prior | Multi-dimensional sensitivity analysis |
+| `model_comparison_suite()` | Comparison | Compare models via LOO/WAIC/R² |
+| `bayes_factor_comparison()` | Comparison | Bayes Factor model comparison |
+| `predictive_performance()` | Comparison | Evaluate predictive accuracy |
+| `extract_posterior_unified()` | Utility | Unified posterior extraction |
+| `diagnostic_report()` | Utility | Generate comprehensive reports |
+
+---
+
+## Further Reading
+
+### Books
+- Gelman et al. (2020). *Bayesian Data Analysis*, 3rd ed.
+- McElreath (2020). *Statistical Rethinking*, 2nd ed.
+- Kruschke (2015). *Doing Bayesian Data Analysis*, 2nd ed.
+
+### Papers
+- Vehtari et al. (2021). "Rank-Normalization, Folding, and Localization: An Improved R-hat for Assessing Convergence of MCMC." *Bayesian Analysis*.
+- Gabry et al. (2019). "Visualization in Bayesian workflow." *Journal of the Royal Statistical Society, Series A*.
+- Vehtari et al. (2017). "Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC." *Statistics and Computing*.
+
+### Packages
+- **brms**: Bayesian Regression Models using Stan
+- **bayesplot**: Plotting for Bayesian models
+- **posterior**: Tools for working with posterior draws
+- **loo**: Efficient leave-one-out cross-validation
+
+---
+
+## Getting Help
+
+```{r help, eval=FALSE}
+# Function documentation
+?mcmc_diagnostics_summary
+?posterior_predictive_check
+?prior_sensitivity
+
+# Package vignettes
+browseVignettes("bayesDiagnostics")
+
+# Report issues
+# https://github.com/yourusername/bayesDiagnostics/issues
+```
+
+---
+
+**End of Vignette**

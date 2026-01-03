@@ -1,6 +1,6 @@
 Package: bayesDiagnostics
 Type: Package
-Title: Comprehensive Bayesian Model Diagnostics and Comparison
+Title: Comprehensive Bayesian Model Diagnostics and Comparison Tools
 Version: 0.1.0
 Authors@R: 
     person("Ibrahim Kholil", "Rakib", , "ikrakib1010@gmail.com", role = c("aut", "cre"))
@@ -10,7 +10,7 @@ Description: Provides comprehensive tools for Bayesian model diagnostics
     comparison using Pareto-smoothed importance sampling leave-one-out 
     cross-validation (Vehtari et al. (2017) <doi:10.1007/s11222-016-9696-4>), 
     convergence diagnostics, and prior elicitation tools. Integrates with 
-    'brms' (Bürkner (2017) <doi:10.18637/jss.v080.i01>), 'rstan', and 
+    'brms' (Burkner (2017) <doi:10.18637/jss.v080.i01>), 'rstan', and 
     'rstanarm' packages for comprehensive Bayesian workflow diagnostics.
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -23,16 +23,17 @@ Imports:
     brms (>= 2.18.0),
     checkmate (>= 2.1.0),
     ggplot2 (>= 3.4.0),
+    gridExtra,
     loo (>= 2.5.0),
     posterior (>= 1.0.0),
     matrixStats,
     bridgesampling,
-    rstan (>= 2.26.0)
+    rstan (>= 2.26.0),
+    tidyr (>= 1.3.0)
 Suggests:
     bayesplot (>= 1.10.0),
     covr,
     knitr,
-    gridExtra,
     magrittr (>= 2.0.0),
     purrr (>= 1.0.0),
     rmarkdown,
@@ -41,7 +42,6 @@ Suggests:
     spelling,
     testthat (>= 3.0.0),
     tibble (>= 3.2.0),
-    tidyr (>= 1.3.0),
     lme4
 VignetteBuilder: knitr
 URL: https://github.com/ikrakib/bayesDiagnostics
