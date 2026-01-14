@@ -67,26 +67,3 @@ The function checks:
 \item Shrinkage factor (ratio of group SD to pooled SD)
 }
 }
-\examples{
-\dontrun{
-library(brms)
-# Fit hierarchical model
-fit <- brm(
-  reaction ~ days + (days | subject),
-  data = sleepstudy,
-  family = gaussian()
-)
-
-# Check convergence
-conv <- hierarchical_convergence(
-  model = fit,
-  group_vars = "subject",
-  rhat_threshold = 1.01,
-  check_shrinkage = TRUE
-)
-
-print(conv)
-plot(conv)
-}
-
-}

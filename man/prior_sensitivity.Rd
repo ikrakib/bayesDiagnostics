@@ -55,7 +55,7 @@ on the choice of prior distribution. Small sensitivity metrics indicate
 that conclusions are robust to prior specification.
 }
 \examples{
-\dontrun{
+\donttest{
 library(brms)
 fit <- brm(mpg ~ hp + wt, data = mtcars)
 

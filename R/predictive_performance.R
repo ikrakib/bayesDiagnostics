@@ -41,7 +41,7 @@
 #'   Computed using empirical cumulative distribution function
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(brms)
 #'
 #' data <- data.frame(y = rnorm(100, mean = 5), x = rnorm(100))

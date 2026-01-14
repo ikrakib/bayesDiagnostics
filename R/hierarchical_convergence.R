@@ -38,9 +38,12 @@
 #' }
 #'
 #' @examples
-#' \dontrun{
-#' library(brms)
+#' \donttest{
+#' if (interactive()) {
+#'   library(brms)
+#'   library(lme4)
 #' # Fit hierarchical model
+#' library(lme4)  # For sleepstudy dataset
 #' fit <- brm(
 #'   reaction ~ days + (days | subject),
 #'   data = sleepstudy,

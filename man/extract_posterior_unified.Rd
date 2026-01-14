@@ -56,7 +56,7 @@ Supported model types:
 }
 }
 \examples{
-\dontrun{
+\donttest{
 library(brms)
 fit <- brm(mpg ~ hp + wt, data = mtcars)
 
@@ -67,7 +67,7 @@ draws_df <- extract_posterior_unified(fit, format = "draws_df")
 slopes <- extract_posterior_unified(
   fit,
   parameters = c("b_hp", "b_wt"),
-  format = "matrix"
+  format = "draws_matrix"
 )
 
 # Extract first 1000 draws from chain 1
