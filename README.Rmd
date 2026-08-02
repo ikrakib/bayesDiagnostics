@@ -32,16 +32,21 @@ knitr::opts_chunk$set(
 
 ## Installation
 
-Install from GitHub:
+### From CRAN
 
-```r
-devtools::install_github("ikrakib/bayesDiagnostics")
-```
-
-Once available on CRAN:
+The stable version of `bayesDiagnostics` is available from CRAN:
 
 ```r
 install.packages("bayesDiagnostics")
+```
+
+### Development version
+
+The development version can be installed from GitHub:
+
+```r
+install.packages("remotes")
+remotes::install_github("ikrakib/bayesDiagnostics")
 ```
 
 ## Quick Example
