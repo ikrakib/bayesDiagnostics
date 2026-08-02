@@ -2,9 +2,8 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # bayesDiagnostics
-
 <!-- badges: start -->
-
+[![CRAN status](https://www.r-pkg.org/badges/version/bayesDiagnostics)](https://CRAN.R-project.org/package=bayesDiagnostics)
 <!-- badges: end -->
 
 ## Overview
