@@ -27,16 +27,17 @@ Bayesian diagnostic tools.
 
 ## Installation
 
-Install from GitHub:
+### Stable version from CRAN
 
-``` r
-devtools::install_github("ikrakib/bayesDiagnostics")
+```r
+install.packages("bayesDiagnostics")
 ```
 
-Once available on CRAN:
+### Development version from GitHub
 
-``` r
-install.packages("bayesDiagnostics")
+```r
+install.packages("remotes")
+remotes::install_github("ikrakib/bayesDiagnostics")
 ```
 
 ## Quick Example
