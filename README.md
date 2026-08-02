@@ -114,6 +114,10 @@ Contributions welcome! Please:
 
 ## Citation
 
-``` r
+To cite `bayesDiagnostics` in research, run:
+
+```r
 citation("bayesDiagnostics")
 ```
+
+Package DOI: `10.32614/CRAN.package.bayesDiagnostics`
